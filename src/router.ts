@@ -12,8 +12,8 @@ import * as tvShowsController from "./controllers/tvshows";
 dotenv.config();
 
 const router = Router();
-const secret = process.env.SECRET_KEY;
-const protectedRouter = withJWTAuthMiddleware(router, secret);
+const secretAccess = process.env.ACCESS_JWT_SECRET;
+const protectedRouter = withJWTAuthMiddleware(router, secretAccess);
 
 /**
  * Routes to sign-up and authentication
@@ -26,15 +26,15 @@ router.post("/auth/refresh", authController.refresh);
 /**
  * Routes to Movies
  */
-protectedRouter.post("/movies", moviesController.create);
-protectedRouter.get("/movies", moviesController.getAll);
-protectedRouter.get("/movies/:genre/:sortBy", moviesController.getAllBy);
+protectedRouter.post("/api/movies", moviesController.create);
+protectedRouter.get("/api/movies", moviesController.getAll);
+protectedRouter.get("/api/movies/:genre/:sortBy", moviesController.getAllBy);
 
 /**
- * Routes to Tv Shows
+ * Routes to Tv Shows and Episodes
  */
 protectedRouter.get(
-  "/tvshow/:showId/episode/:epId",
+  "/api/tvshow/:showId/episode/:epId",
   tvShowsController.getEpisode
 );
 

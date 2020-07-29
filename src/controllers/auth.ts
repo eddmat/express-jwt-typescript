@@ -18,8 +18,15 @@ interface IUser {
   password: string;
 }
 
+const secretAccess = process.env.ACCESS_JWT_SECRET;
+const secretRefresh = process.env.REFRESH_JWT_SECRET;
+
 const generateAccessToken = (user: IUser) => {
-  return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15s" });
+  try {
+    return jwt.sign(user, secretAccess, { expiresIn: "30s" });
+  } catch {
+    throw Error("Could not generate a new access token");
+  }
 };
 
 /**
@@ -60,16 +67,20 @@ export const login = async (req: Request, res: Response) => {
     const hasCredentials = bcrypt.compareSync(password, user.password);
 
     if (!hasCredentials) {
-      return res.status(401).send("Unauthenticated");
+      return res.status(401).send("Wrong credentials");
     }
 
-    const token = jwt.sign({ user }, process.env.SECRET, {
-      expiresIn: "1h",
+    const accessToken = generateAccessToken({
+      email,
+      password,
     });
+
+    const refreshToken = jwt.sign({ email, password }, secretRefresh);
 
     return res.status(200).json({
       user,
-      token,
+      accessToken,
+      refreshToken,
       message: "Successfuly logged in",
     });
   } catch {
@@ -80,22 +91,18 @@ export const login = async (req: Request, res: Response) => {
 export const refresh = async (req: Request, res: Response) => {
   const refreshToken = req.body.token;
 
-  if (refreshToken === null) {
-    return res.status(401).send("No token was found in the parameters");
-  }
-
   jwt.verify(
     refreshToken,
-    process.env.REFRESH_TOKEN_SECRET,
+    secretRefresh,
     (err: JsonWebTokenError, user: IUser) => {
-      if (err) return res.sendStatus(403);
+      if (err) return res.status(403).json(err);
 
       const accessToken = generateAccessToken({
         email: user.email,
         password: user.password,
       });
 
-      return res.status(200).json({ accessToken: accessToken });
+      res.status(200).json({ accessToken });
     }
   );
 };

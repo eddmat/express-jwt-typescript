@@ -23,7 +23,9 @@ export const create = async (req: Request, res: Response) => {
 
 export const getAll = async (req: Request, res: Response) => {
   try {
-    const movies = Movie.find();
+    const movies = await Movie.find();
+
+    if (movies.length === 0) return res.status(204);
 
     res.status(200).json(movies);
   } catch {
@@ -33,11 +35,13 @@ export const getAll = async (req: Request, res: Response) => {
 
 export const getAllBy = async (req: Request, res: Response) => {
   try {
-    const movies = Movie.find()
+    const movies = await Movie.find()
       .sort({
         genre: req.params.sortBy,
       })
       .where("genre", req.params.genre);
+
+    if (movies.length === 0) return res.status(204);
 
     res.status(200).json(movies);
   } catch {

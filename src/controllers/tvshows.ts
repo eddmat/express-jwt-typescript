@@ -14,7 +14,12 @@ export const getEpisode = async (req: Request, res: Response) => {
       res.status(400).send("Not enough parameters");
     }
 
-    const episode = Episode.findOne({ _id: episodeId }).where("show", showId);
+    const episode = await Episode.findOne({ _id: episodeId }).where(
+      "show",
+      showId
+    );
+
+    if (!episode) return res.status(204);
 
     res.status(200).json(episode);
   } catch {
